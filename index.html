@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Gaple Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Roboto:wght@400;500;700;900&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+  // set tema lebih awal supaya tidak ada "kedipan" tampilan saat halaman dimuat
+  (function(){
+    try{
+      const t = localStorage.getItem('gapleTheme');
+      if(t === 'material' || t === 'cyberpunk'){
+        document.documentElement.setAttribute('data-theme', t);
+      }
+    }catch(e){}
+  })();
+</script>
+<style>
+  :root{
+    --ink:#141414;
+    --bg:#F2ECD8;
+    --cream:#FFF7E6;
+    --surface:#FFFFFF;
+    --line:#E7DDBE;
+    --felt:#1C8354;
+    --felt-dark:#0F5636;
+    --win:#8FE05A;
+    --win-ink:#0F5636;
+    --lose:#FF5C5C;
+    --lose-ink:#FFFFFF;
+    --neutral:#4FA9FF;
+    --neutral-ink:#0B3B66;
+    --lose-solid:#7A0E0E;
+    --gold:#FFC93C;
+    --radius:14px;
+    --radius-sm:9px;
+    --border:3px;
+    --shadow:5px 5px 0 var(--ink);
+    --shadow-sm:3px 3px 0 var(--ink);
+    --gap:16px;
+  }
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent; /* hilangkan highlight biru muda bawaan browser saat tap */
+  }
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-color:var(--bg);
+    background-image:radial-gradient(rgba(20,20,20,.10) 1.5px, transparent 1.5px);
+    background-size:22px 22px;
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:19px 16px 60px;}
+
+  /* brand banner */
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:23px;
+    padding:0 2px;
+  }
+  .brand-tile{
+    width:30px;height:44px;background:var(--cream);border:2px solid var(--ink);border-radius:6px;
+    position:relative;flex-shrink:0;transform:rotate(-7deg);
+  }
+  .brand-tile::before{
+    content:"";position:absolute;left:50%;top:50%;width:18px;height:2px;background:var(--ink);
+    transform:translate(-50%,-50%);
+  }
+  .brand-tile::after{
+    content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--ink);
+    top:9px;left:8px;box-shadow:11px 0 0 var(--ink), 0 21px 0 var(--ink), 11px 21px 0 var(--ink);
+  }
+  .brand-text{min-width:0;}
+  .brand h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.3px;color:var(--ink);line-height:1.1;}
+  .brand-tag{
+    display:inline-block;margin-top:6px;color:var(--ink);
+    font-size:11px;font-weight:700;opacity:.65;
+  }
+
+  .card{
+    background:var(--surface);
+    color:var(--ink);
+    border:var(--border) solid var(--ink);
+    border-radius:var(--radius);
+    padding:16px 14px;
+    margin-bottom:var(--gap);
+    box-shadow:var(--shadow);
+  }
+  .card h2{
+    font-size:13px;margin:0 0 12px;font-weight:800;color:var(--ink);
+    padding-bottom:8px;border-bottom:var(--border) solid var(--ink);
+  }
+
+  label.field{display:block;margin-bottom:12px;}
+  label.field span{display:block;font-size:10.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+  input[type=text], input[type=number]{
+    width:100%;padding:9px 10px;border-radius:var(--radius-sm);border:var(--border) solid var(--ink);
+    font-size:16px;font-weight:600;background:var(--surface);color:var(--ink);font-family:inherit;
+    box-shadow:var(--shadow-sm);transition:transform .08s,box-shadow .08s;
+  }
+  input[type=text]:focus, input[type=number]:focus{
+    outline:none;border-color:var(--felt);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);
+  }
+
+  .round-options{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .round-chip{
+    padding:7px 14px;border-radius:999px;border:var(--border) solid var(--ink);background:var(--surface);
+    font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:transform .08s,box-shadow .08s;
+  }
+  .round-chip.active{background:var(--felt);color:var(--cream);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+
+  button{
+    font-family:inherit;cursor:pointer;border:none;
+  }
+  .btn-primary{
+    width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--felt);color:var(--cream);
+    font-size:14px;font-weight:800;letter-spacing:.2px;border:var(--border) solid var(--ink);
+    box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s;
+  }
+  .btn-primary:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+  .btn-primary:disabled{background:#D9D2B8;color:#8b8672;border-color:#b7b19c;box-shadow:5px 5px 0 #b7b19c;cursor:not-allowed;}
+  .btn-secondary{
+    width:100%;padding:11px;border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);
+    font-size:12.5px;font-weight:800;border:var(--border) solid var(--ink);box-shadow:var(--shadow);
+    transition:transform .08s,box-shadow .08s;
+  }
+  .btn-secondary:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink);}
+  .btn-ghost{
+    width:100%;padding:8px;border-radius:var(--radius-sm);background:transparent;color:var(--ink);
+    font-size:11.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;
+  }
+
+  /* round header */
+  .round-pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--surface);
+    border:var(--border) solid var(--ink);padding:4px 12px;border-radius:999px;
+    font-size:11px;font-weight:800;color:var(--ink);margin-bottom:16px;box-shadow:var(--shadow-sm);
+  }
+  .round-pill b{color:var(--felt-dark);font-size:13px;}
+
+  .player-row{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 0;border-bottom:2px solid var(--line);
+  }
+  .player-row:last-child{border-bottom:none;}
+  .player-name{font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .status-btns{display:flex;gap:4px;flex-shrink:0;}
+  .status-btn{
+    width:42px;height:42px;border-radius:var(--radius-sm);font-size:17px;background:var(--surface);
+    border:var(--border) solid var(--ink);display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-sm);transition:.1s;
+  }
+  .status-btn.win.active{background:var(--win);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  .status-btn.lose.active{background:var(--lose);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  .status-btn.neutral.active{background:var(--neutral);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  .status-icon-x{color:var(--lose-solid);font-weight:900;font-size:18px;line-height:1;}
+  .status-btn.lose.active .status-icon-x{color:#FFFFFF;}
+
+  .validation-msg{
+    font-size:11px;text-align:center;padding:9px;border-radius:var(--radius-sm);margin-bottom:12px;
+    background:var(--lose);color:var(--lose-ink);font-weight:800;border:var(--border) solid var(--ink);
+    box-shadow:var(--shadow-sm);
+  }
+  .validation-msg.ok{background:var(--win);color:var(--win-ink);}
+
+  /* scoreboard */
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:9.5px;color:var(--ink);font-weight:800;
+    padding:0 2px 8px;border-bottom:var(--border) solid var(--ink);
+  }
+  tbody td{padding:10px 2px;font-size:12px;font-weight:600;border-bottom:2px solid var(--line);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.score-cell{padding-top:6px;padding-bottom:6px;}
+  .score-badge{display:inline-block;padding:4px 10px;border-radius:8px;font-weight:800;}
+  .score-badge.pos{color:var(--win-ink);background:var(--win);}
+  .score-badge.neg{color:var(--lose-ink);background:var(--lose);}
+  .score-badge.zero{color:var(--ink);background:var(--line);}
+  th.num, td.num{text-align:center;}
+
+  /* history */
+  .history-item{
+    padding:12px 0;border-bottom:2px solid var(--line);
+  }
+  .history-item:last-child{border-bottom:none;}
+  .history-title{
+    font-size:10px;font-weight:800;color:#000;margin-bottom:8px;display:inline-block;
+    background:var(--gold);padding:2px 6px;border:2px solid var(--ink);border-radius:999px;
+  }
+  .history-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;}
+  .history-entry{display:flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;}
+  .history-tag{font-size:9px;padding:2px 6px;border-radius:999px;font-weight:800;border:2px solid var(--ink);}
+  .history-tag.win{background:var(--win);color:var(--win-ink);}
+  .history-tag.lose{background:var(--lose);color:var(--lose-ink);}
+  .history-tag.neutral{background:var(--neutral);color:var(--neutral-ink);}
+
+  /* final result */
+  .rank-card{
+    display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius-sm);
+    background:var(--surface);border:var(--border) solid var(--ink);margin-bottom:10px;box-shadow:var(--shadow-sm);
+  }
+  .rank-card.top{background:var(--gold);}
+  .rank-medal{font-size:26px;width:36px;text-align:center;flex-shrink:0;}
+  .rank-info{flex:1;min-width:0;}
+  .rank-name{font-weight:800;font-size:14px;}
+  .rank-stats{font-size:10px;color:var(--ink);opacity:.65;margin-top:0px;font-weight:600;}
+  .rank-score{font-size:18px;font-weight:800;flex-shrink:0;}
+  .rank-score.pos{color:var(--felt-dark);}
+  .rank-score.neg{color:var(--lose-solid);}
+  .rank-score.zero{color:var(--ink);opacity:.6;}
+  .tie-note{font-size:9px;color:var(--felt-dark);font-weight:800;margin-top:0px;}
+
+  /* winner history */
+  .winner-history-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:2px solid var(--line);
+  }
+  .winner-history-item:last-child{border-bottom:none;}
+  .winner-history-medal{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+  .winner-history-info{flex:1;min-width:0;}
+  .winner-history-name{font-weight:800;font-size:13px;}
+  .winner-history-meta{font-size:9.5px;color:var(--ink);opacity:.65;font-weight:600;margin-top:2px;}
+  .winner-history-score{font-size:13px;font-weight:800;color:var(--felt-dark);flex-shrink:0;}
+  .winner-history-empty{font-size:11px;color:var(--ink);opacity:.65;margin:0;font-weight:600;}
+  .winner-history-clear{
+    display:block;margin:10px auto 0;background:none;border:none;
+    font-family:inherit;font-size:10px;font-weight:700;color:var(--lose-solid);
+    opacity:.75;cursor:pointer;text-decoration:underline;padding:4px;
+  }
+  .winner-history-clear:active{opacity:1;}
+
+  /* loser history (mirrors winner history styling) */
+  .loser-history-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:2px solid var(--line);
+  }
+  .loser-history-item:last-child{border-bottom:none;}
+  .loser-history-medal{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+  .loser-history-info{flex:1;min-width:0;}
+  .loser-history-name{font-weight:800;font-size:13px;}
+  .loser-history-meta{font-size:9.5px;color:var(--ink);opacity:.65;font-weight:600;margin-top:2px;}
+  .loser-history-score{font-size:13px;font-weight:800;color:var(--lose-solid);flex-shrink:0;}
+  .loser-history-empty{font-size:11px;color:var(--ink);opacity:.65;margin:0;font-weight:600;}
+  .loser-history-clear{
+    display:block;margin:10px auto 0;background:none;border:none;
+    font-family:inherit;font-size:10px;font-weight:700;color:var(--lose-solid);
+    opacity:.75;cursor:pointer;text-decoration:underline;padding:4px;
+  }
+  .loser-history-clear:active{opacity:1;}
+
+  /* history carousel: swipe area shared by Riwayat Pemenang & Riwayat Kalah */
+  .history-tabs{display:flex;gap:6px;margin-bottom:12px;}
+  .history-tab{
+    flex:1;padding:8px 6px;border-radius:999px;border:var(--border) solid var(--ink);
+    background:var(--surface);font-size:11px;font-weight:800;color:var(--ink);
+    box-shadow:var(--shadow-sm);transition:transform .08s,box-shadow .08s;
+    display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;
+  }
+  .history-tab.active{background:var(--felt);color:var(--cream);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+  /* judul Setup: teks biasa di dalam tiap slide, ikut bergeser bersama isinya */
+  .setup-label{
+    display:block;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:12px;
+    user-select:none;-webkit-user-select:none;
+  }
+  #setup-card{touch-action:pan-y;}
+  .history-carousel{overflow:hidden;position:relative;touch-action:pan-y;}
+  .history-track{display:flex;width:200%;transition:transform .32s cubic-bezier(.22,.61,.36,1);}
+  .history-track.dragging{transition:none;}
+  .history-slide{width:50%;flex-shrink:0;min-width:0;}
+  /* ruang napas kiri-kanan supaya input/chip dan bayangannya tidak terpotong / nempel tepi */
+  /* isi slide sejajar persis dengan tab; gutter kanan 8px khusus untuk bayangan (carousel melebar ke padding kartu) */
+  #setup-carousel{margin-right:-8px;}
+  #setup-track .history-slide{box-sizing:border-box;padding:2px 8px 10px 0;}
+  .history-dots{display:flex;justify-content:center;gap:6px;margin-top:10px;}
+  .history-dot{width:7px;height:7px;border-radius:50%;background:var(--line);border:2px solid var(--ink);flex-shrink:0;}
+  .history-dot.active{background:var(--felt);}
+
+  html[data-theme="material"] .loser-history-item{
+    border-bottom:1px solid #E6E1E9;
+  }
+  html[data-theme="material"] .history-tab{
+    border:none;box-shadow:var(--shadow-sm);border-radius:var(--radius-sm);
+  }
+  html[data-theme="material"] .history-tab.active{
+    transform:none;
+    box-shadow:var(--shadow-sm);
+  }
+
+  html[data-theme="cyberpunk"] .loser-history-item{
+    border-bottom:1.5px solid rgba(34,230,255,.18);
+  }
+  html[data-theme="cyberpunk"] .loser-history-name{color:var(--cream);}
+  html[data-theme="cyberpunk"] .loser-history-score{
+    color:var(--lose);text-shadow:0 0 6px rgba(255,43,84,.7);
+  }
+  html[data-theme="cyberpunk"] .loser-history-clear{
+    color:var(--lose-solid);text-shadow:0 0 4px rgba(255,61,99,.6);
+    transition:opacity .2s ease, text-shadow .2s ease;
+  }
+  html[data-theme="cyberpunk"] .loser-history-clear:hover{
+    opacity:1;text-shadow:0 0 8px rgba(255,61,99,.9);
+  }
+  html[data-theme="cyberpunk"] .history-dot{
+    border-color:var(--neutral);background:rgba(34,230,255,.12);
+  }
+  html[data-theme="cyberpunk"] .history-dot.active{
+    background:var(--felt);box-shadow:0 0 6px rgba(255,43,214,.7);
+  }
+  html[data-theme="cyberpunk"] .history-tab{
+    background:#0a0a1c;border:1.5px solid var(--line);color:var(--cream);
+    box-shadow:var(--shadow-sm);
+    transition:background .2s ease, box-shadow .2s ease, border-color .2s ease, filter .2s ease;
+  }
+  html[data-theme="cyberpunk"] .history-tab:hover{
+    border-color:var(--neutral);
+    box-shadow:0 0 12px rgba(34,230,255,.6);
+  }
+  html[data-theme="cyberpunk"] .history-tab:active{
+    filter:brightness(.9);
+  }
+  html[data-theme="cyberpunk"] .history-tab.active{
+    background:linear-gradient(90deg, var(--felt), var(--neutral));
+    color:#050510;border-color:var(--cream);text-shadow:none;
+    box-shadow:0 0 12px rgba(255,43,214,.85);
+    transform:none;
+  }
+  html[data-theme="cyberpunk"] .history-tab.active:hover{
+    box-shadow:0 0 18px rgba(255,43,214,1);
+  }
+
+  .on-felt{color:var(--cream)!important;border-color:var(--cream)!important;}
+  .btn-secondary.on-felt{background:transparent;box-shadow:5px 5px 0 var(--felt-dark);}
+  .btn-secondary.on-felt:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--felt-dark);}
+  .resume-box{text-align:center;color:var(--cream);}
+  .resume-box h2{border-bottom-color:var(--cream);color:var(--cream);}
+  .resume-box p{font-size:12px;color:var(--cream);opacity:.9;margin-bottom:16px;line-height:1.5;font-weight:500;}
+  .btn-stack{display:flex;flex-direction:column;gap:8px;}
+
+  .screen{display:none;}
+  .screen.visible{display:block;}
+
+  @media (min-width:600px){
+    .wrap{padding-top:32px;}
+  }
+
+  /* ======================= THEME TOGGLE BUTTON ======================= */
+  .brand{position:relative;}
+  .theme-toggle{
+    position:absolute;
+    top:50%;right:10px;margin-top:-18px;
+    width:36px;height:36px;
+    border-radius:50%;
+    background:var(--cream);
+    border:2px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;line-height:1;
+    box-shadow:2px 2px 0 var(--ink);
+    transition:transform .15s, box-shadow .15s, background .25s, border-radius .3s, border-color .25s;
+    z-index:3;
+  }
+  .theme-toggle:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+
+  /* ===================================================================
+     MATERIAL DESIGN THEME
+     Diaktifkan lewat [data-theme="material"] di elemen <html>
+     =================================================================== */
+  html[data-theme="material"] body{
+    font-family:'Roboto',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-color:#F3F1F7;
+    background-image:none;
+  }
+  html[data-theme="material"] :root,
+  html[data-theme="material"]{
+    --ink:#1C1B1F;
+    --bg:#F3F1F7;
+    --cream:#FFFFFF;
+    --surface:#FFFFFF;
+    --line:#E6E1E9;
+    --felt:#3A6B57;
+    --felt-dark:#1F4B3B;
+    --win:#2E7D46;
+    --win-ink:#FFFFFF;
+    --lose:#B3261E;
+    --lose-ink:#FFFFFF;
+    --neutral:#3060B0;
+    --neutral-ink:#FFFFFF;
+    --lose-solid:#B3261E;
+    --gold:#F0A600;
+    --radius:20px;
+    --radius-sm:14px;
+    --shadow:0 1px 2px rgba(0,0,0,.30), 0 2px 6px 1px rgba(0,0,0,.12);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.25), 0 1px 3px rgba(0,0,0,.10);
+  }
+
+  html[data-theme="material"] .brand{
+    background:none;
+    border:none;
+    box-shadow:none;
+  }
+  html[data-theme="material"] .brand-tile{
+    border:none;
+    box-shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  html[data-theme="material"] .brand-tag{
+    font-weight:500;
+  }
+  html[data-theme="material"] .theme-toggle{
+    border:none;
+    border-radius:12px;
+    box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="material"] .theme-toggle:active{
+    transform:scale(.94);
+  }
+
+  html[data-theme="material"] .card{
+    border:none;
+    box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="material"] .card h2{
+    border-bottom:1px solid var(--line);
+  }
+
+  html[data-theme="material"] input[type=text],
+  html[data-theme="material"] input[type=number]{
+    border:1px solid #CAC4D0;
+    border-radius:var(--radius-sm);
+    box-shadow:none;
+    background:#F7F2FA;
+  }
+  html[data-theme="material"] input[type=text]:focus,
+  html[data-theme="material"] input[type=number]:focus{
+    border-color:var(--felt);
+    border-width:2px;
+    transform:none;
+    box-shadow:none;
+  }
+
+  html[data-theme="material"] .round-chip{
+    border:1px solid #CAC4D0;
+    box-shadow:none;
+  }
+  html[data-theme="material"] .round-chip.active{
+    border-color:var(--felt);
+    transform:none;
+    box-shadow:none;
+  }
+
+  html[data-theme="material"] .btn-primary{
+    border:none;
+    border-radius:999px;
+    box-shadow:var(--shadow-sm);
+    transition:transform .1s, box-shadow .15s, filter .15s;
+  }
+  html[data-theme="material"] .btn-primary:active{
+    transform:scale(.98);
+    box-shadow:0 1px 1px rgba(0,0,0,.2);
+  }
+  html[data-theme="material"] .btn-primary:disabled{
+    background:#E6E1E9;color:#9a949e;border:none;box-shadow:none;
+  }
+  html[data-theme="material"] .btn-secondary{
+    background:transparent;
+    color:var(--felt);
+    border:1px solid #CAC4D0;
+    border-radius:999px;
+    box-shadow:none;
+  }
+  html[data-theme="material"] .btn-secondary:active{
+    transform:scale(.98);
+    box-shadow:none;
+    background:rgba(58,107,87,.08);
+  }
+  html[data-theme="material"] .btn-secondary.on-felt{
+    color:var(--cream);border-color:rgba(255,255,255,.6);
+  }
+
+  html[data-theme="material"] .round-pill{
+    border:none;
+    box-shadow:var(--shadow-sm);
+  }
+
+  html[data-theme="material"] .status-btn{
+    border:none;
+    border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="material"] .status-btn.win.active,
+  html[data-theme="material"] .status-btn.lose.active,
+  html[data-theme="material"] .status-btn.neutral.active{
+    transform:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.3) inset;
+  }
+
+  html[data-theme="material"] .validation-msg{
+    border:none;
+    box-shadow:none;
+    border-radius:var(--radius-sm);
+  }
+
+  html[data-theme="material"] .score-badge{
+    border-radius:999px;
+  }
+
+  html[data-theme="material"] .history-title{
+    border:none;
+    border-radius:999px;
+  }
+  html[data-theme="material"] .history-tag{
+    border:none;
+    border-radius:999px;
+  }
+
+  html[data-theme="material"] .rank-card{
+    border:none;
+    box-shadow:var(--shadow-sm);
+    border-radius:var(--radius-sm);
+  }
+
+  html[data-theme="material"] .winner-history-item{
+    border-bottom:1px solid #E6E1E9;
+  }
+
+  /* ===================================================================
+     CYBERPUNK FUTURISTIC THEME
+     Diaktifkan lewat [data-theme="cyberpunk"] di elemen <html>
+     =================================================================== */
+  html[data-theme="cyberpunk"] body{
+    font-family:'Orbitron','Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background-color:#050510;
+    background-image:
+      linear-gradient(rgba(34,230,255,.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,230,255,.09) 1px, transparent 1px),
+      radial-gradient(circle at 12% -10%, rgba(255,43,214,.28), transparent 42%),
+      radial-gradient(circle at 100% 10%, rgba(34,230,255,.24), transparent 45%),
+      radial-gradient(circle at 50% 120%, rgba(155,15,143,.30), transparent 50%);
+    background-size:28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+    background-attachment:fixed;
+  }
+  html[data-theme="cyberpunk"] :root,
+  html[data-theme="cyberpunk"]{
+    --ink:#d9faff;
+    --bg:#050510;
+    --cream:#eafeff;
+    --surface:#0b0b20;
+    --line:#1fd8ea;
+    --felt:#ff2bd6;
+    --felt-dark:#8f0f86;
+    --win:#00ffb2;
+    --win-ink:#012b1c;
+    --lose:#ff2b54;
+    --lose-ink:#FFFFFF;
+    --neutral:#22e6ff;
+    --neutral-ink:#00232b;
+    --lose-solid:#ff3d63;
+    --gold:#ffe94d;
+    --radius:10px;
+    --radius-sm:8px;
+    --shadow:0 0 1px #000, 0 0 14px rgba(34,230,255,.55), 0 0 28px rgba(255,43,214,.30);
+    --shadow-sm:0 0 1px #000, 0 0 8px rgba(34,230,255,.55);
+  }
+
+  html[data-theme="cyberpunk"] .brand-tile{
+    background:var(--surface);
+    border:2px solid var(--neutral);
+    box-shadow:0 0 10px rgba(34,230,255,.8), inset 0 0 6px rgba(34,230,255,.5);
+  }
+  html[data-theme="cyberpunk"] .brand h1{
+    letter-spacing:1px;
+    color:var(--cream);
+    text-shadow:0 0 6px rgba(34,230,255,.9), 0 0 16px rgba(255,43,214,.6);
+  }
+  html[data-theme="cyberpunk"] .brand-tag{
+    color:var(--neutral);
+    opacity:.85;
+    text-shadow:0 0 4px rgba(34,230,255,.6);
+  }
+  html[data-theme="cyberpunk"] .theme-toggle{
+    background:var(--surface);
+    border:2px solid var(--felt);
+    box-shadow:0 0 10px rgba(255,43,214,.75), inset 0 0 6px rgba(255,43,214,.35);
+    transition:box-shadow .2s ease, filter .2s ease, border-color .2s ease;
+  }
+  html[data-theme="cyberpunk"] .theme-toggle:hover{
+    border-color:var(--neutral);
+    box-shadow:0 0 16px rgba(34,230,255,.85), inset 0 0 8px rgba(34,230,255,.4);
+  }
+  html[data-theme="cyberpunk"] .theme-toggle:active{
+    transform:none;
+    filter:brightness(.85);
+    box-shadow:0 0 6px rgba(255,43,214,.6), inset 0 0 10px rgba(255,43,214,.5);
+  }
+
+  html[data-theme="cyberpunk"] .card{
+    background:linear-gradient(180deg, rgba(20,20,45,.92), rgba(9,9,22,.95));
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow);
+  }
+  html[data-theme="cyberpunk"] .card h2{
+    color:var(--cream);
+    border-bottom:1.5px solid var(--felt);
+    text-shadow:0 0 6px rgba(255,43,214,.6);
+    letter-spacing:.5px;
+  }
+
+  html[data-theme="cyberpunk"] input[type=text],
+  html[data-theme="cyberpunk"] input[type=number]{
+    background:#0a0a1c;
+    color:var(--cream);
+    border:1.5px solid var(--line);
+    box-shadow:inset 0 0 6px rgba(34,230,255,.25);
+  }
+  html[data-theme="cyberpunk"] input[type=text]:focus,
+  html[data-theme="cyberpunk"] input[type=number]:focus{
+    border-color:var(--felt);
+    transform:none;
+    box-shadow:0 0 10px rgba(255,43,214,.7), inset 0 0 6px rgba(255,43,214,.3);
+  }
+
+  html[data-theme="cyberpunk"] .round-chip{
+    background:#0a0a1c;
+    border:1.5px solid var(--line);
+    color:var(--cream);
+    box-shadow:var(--shadow-sm);
+    transition:background .2s ease, box-shadow .2s ease, border-color .2s ease, filter .2s ease;
+  }
+  html[data-theme="cyberpunk"] .round-chip:hover{
+    border-color:var(--neutral);
+    box-shadow:0 0 12px rgba(34,230,255,.6);
+  }
+  html[data-theme="cyberpunk"] .round-chip:active{
+    filter:brightness(.9);
+  }
+  html[data-theme="cyberpunk"] .round-chip.active{
+    background:linear-gradient(90deg, var(--felt), var(--neutral));
+    color:#050510;
+    border-color:var(--cream);
+    text-shadow:none;
+    box-shadow:0 0 12px rgba(255,43,214,.85);
+    transform:none;
+  }
+  html[data-theme="cyberpunk"] .round-chip.active:hover{
+    box-shadow:0 0 18px rgba(255,43,214,1);
+  }
+
+  html[data-theme="cyberpunk"] .btn-primary{
+    background:linear-gradient(90deg, var(--felt-dark), var(--felt) 55%, var(--neutral));
+    color:#04040c;
+    border:1.5px solid var(--cream);
+    letter-spacing:1px;
+    text-shadow:none;
+    box-shadow:var(--shadow);
+    transition:box-shadow .2s ease, filter .2s ease;
+  }
+  html[data-theme="cyberpunk"] .btn-primary:hover{
+    filter:brightness(1.12);
+    box-shadow:0 0 1px #000, 0 0 18px rgba(34,230,255,.7), 0 0 34px rgba(255,43,214,.4);
+  }
+  html[data-theme="cyberpunk"] .btn-primary:active{
+    transform:none;
+    filter:brightness(.92);
+    box-shadow:0 0 6px rgba(255,43,214,.55);
+  }
+  html[data-theme="cyberpunk"] .btn-primary:disabled{
+    background:#15152c;color:#4a4a66;border-color:#2a2a44;box-shadow:none;filter:none;
+  }
+  html[data-theme="cyberpunk"] .btn-secondary{
+    background:#0a0a1c;
+    color:var(--neutral);
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow-sm);
+    text-shadow:0 0 4px rgba(34,230,255,.6);
+    transition:background .2s ease, box-shadow .2s ease, border-color .2s ease, filter .2s ease;
+  }
+  html[data-theme="cyberpunk"] .btn-secondary:hover{
+    background:#12122a;
+    border-color:var(--felt);
+    box-shadow:0 0 14px rgba(255,43,214,.55);
+  }
+  html[data-theme="cyberpunk"] .btn-secondary:active{
+    transform:none;
+    filter:brightness(.85);
+    box-shadow:0 0 6px rgba(34,230,255,.5);
+  }
+  html[data-theme="cyberpunk"] .btn-secondary.on-felt{
+    color:var(--cream);border-color:var(--cream);
+  }
+  html[data-theme="cyberpunk"] .btn-secondary.on-felt:active{
+    transform:none;
+    filter:brightness(.85);
+    box-shadow:0 0 8px rgba(255,255,255,.4);
+  }
+
+  html[data-theme="cyberpunk"] .round-pill{
+    background:#0a0a1c;
+    border:1.5px solid var(--neutral);
+    color:var(--cream);
+    box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="cyberpunk"] .round-pill b{
+    color:var(--felt);
+    text-shadow:0 0 6px rgba(255,43,214,.7);
+  }
+
+  html[data-theme="cyberpunk"] .player-row{
+    border-bottom:1.5px solid rgba(34,230,255,.2);
+  }
+  html[data-theme="cyberpunk"] .status-btn{
+    background:#0a0a1c;
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .2s ease, border-color .2s ease, filter .2s ease;
+  }
+  html[data-theme="cyberpunk"] .status-btn:hover{
+    border-color:var(--neutral);
+    box-shadow:0 0 10px rgba(34,230,255,.55);
+  }
+  html[data-theme="cyberpunk"] .status-btn:active{
+    filter:brightness(.85);
+  }
+  html[data-theme="cyberpunk"] .status-btn.win.active{
+    box-shadow:0 0 12px rgba(0,255,178,.85);
+    border-color:var(--win);
+    transform:none;
+  }
+  html[data-theme="cyberpunk"] .status-btn.lose.active{
+    box-shadow:0 0 12px rgba(255,43,84,.85);
+    border-color:var(--lose);
+    transform:none;
+  }
+  html[data-theme="cyberpunk"] .status-btn.neutral.active{
+    box-shadow:0 0 12px rgba(34,230,255,.85);
+    border-color:var(--neutral);
+    transform:none;
+  }
+
+  html[data-theme="cyberpunk"] .validation-msg{
+    border:1.5px solid currentColor;
+    box-shadow:0 0 10px currentColor;
+  }
+
+  html[data-theme="cyberpunk"] table thead th{
+    border-bottom:1.5px solid var(--felt);
+    color:var(--cream);
+  }
+  html[data-theme="cyberpunk"] tbody td{
+    border-bottom:1.5px solid rgba(34,230,255,.18);
+  }
+  html[data-theme="cyberpunk"] .score-badge{
+    box-shadow:0 0 8px currentColor;
+  }
+  html[data-theme="cyberpunk"] .score-badge.pos{background:var(--win);color:var(--win-ink);}
+  html[data-theme="cyberpunk"] .score-badge.neg{background:var(--lose);color:var(--lose-ink);}
+  html[data-theme="cyberpunk"] .score-badge.zero{background:#1c1c34;color:var(--cream);}
+
+  html[data-theme="cyberpunk"] .history-item{
+    border-bottom:1.5px solid rgba(34,230,255,.18);
+  }
+  html[data-theme="cyberpunk"] .history-title{
+    background:var(--gold);color:#000;border-color:var(--gold);
+    box-shadow:0 0 10px rgba(255,233,77,.7);
+  }
+  html[data-theme="cyberpunk"] .history-tag{
+    border-color:currentColor;box-shadow:0 0 6px currentColor;
+  }
+  html[data-theme="cyberpunk"] .history-tag.win{background:var(--win);color:var(--win-ink);}
+  html[data-theme="cyberpunk"] .history-tag.lose{background:var(--lose);color:var(--lose-ink);}
+  html[data-theme="cyberpunk"] .history-tag.neutral{background:var(--neutral);color:var(--neutral-ink);}
+
+  html[data-theme="cyberpunk"] .rank-card{
+    background:linear-gradient(180deg, rgba(20,20,45,.92), rgba(9,9,22,.95));
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="cyberpunk"] .rank-card.top{
+    background:linear-gradient(180deg, rgba(255,233,77,.18), rgba(9,9,22,.95));
+    border-color:var(--gold);
+    box-shadow:0 0 16px rgba(255,233,77,.55);
+  }
+  html[data-theme="cyberpunk"] .rank-name{color:var(--cream);}
+  html[data-theme="cyberpunk"] .rank-score.pos{color:var(--win);text-shadow:0 0 6px rgba(0,255,178,.7);}
+  html[data-theme="cyberpunk"] .rank-score.neg{color:var(--lose);text-shadow:0 0 6px rgba(255,43,84,.7);}
+  html[data-theme="cyberpunk"] .rank-score.zero{color:var(--ink);opacity:.7;}
+  html[data-theme="cyberpunk"] .tie-note{color:var(--neutral);}
+
+  html[data-theme="cyberpunk"] .winner-history-item{
+    border-bottom:1.5px solid rgba(34,230,255,.18);
+  }
+  html[data-theme="cyberpunk"] .winner-history-name{color:var(--cream);}
+  html[data-theme="cyberpunk"] .winner-history-score{
+    color:var(--felt);text-shadow:0 0 6px rgba(255,43,214,.6);
+  }
+  html[data-theme="cyberpunk"] .winner-history-clear{
+    color:var(--lose-solid);text-shadow:0 0 4px rgba(255,61,99,.6);
+    transition:opacity .2s ease, text-shadow .2s ease;
+  }
+  html[data-theme="cyberpunk"] .winner-history-clear:hover{
+    opacity:1;
+    text-shadow:0 0 8px rgba(255,61,99,.9);
+  }
+  html[data-theme="cyberpunk"] .btn-ghost{
+    color:var(--neutral);
+    transition:color .2s ease, text-shadow .2s ease;
+  }
+  html[data-theme="cyberpunk"] .btn-ghost:hover{
+    color:var(--cream);
+    text-shadow:0 0 6px rgba(34,230,255,.7);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Ganti ke tampilan Material Design" aria-label="Ganti tampilan desain">🎨</button>
+    <div class="brand-tile"></div>
+    <div class="brand-text">
+      <h1>GAPLE SCORE</h1>
+      <span class="brand-tag">Di buat dengan penuh cinta by SASUKE</span>
+    </div>
+  </div>
+
+  <!-- RESUME SCREEN -->
+  <section id="screen-resume" class="screen">
+    <div class="card resume-box" style="background:var(--felt);">
+      <h2>Ada game yang belum selesai</h2>
+      <p>Kami menemukan permainan yang sedang berjalan. Lanjutkan dari ronde terakhir, atau mulai game baru dan hapus data sebelumnya.</p>
+      <div class="btn-stack">
+        <button class="btn-primary" style="background:var(--gold);color:#000;" onclick="resumeGame()">LANJUTKAN GAME</button>
+        <button class="btn-secondary on-felt" onclick="confirmNewFromResume()">NEW GAME</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP SCREEN -->
+  <section id="screen-setup" class="screen">
+    <div class="card" id="setup-card">
+      <div class="history-carousel" id="setup-carousel">
+        <div class="history-track" id="setup-track">
+          <div class="history-slide">
+            <span class="setup-label">👤 Nama Pemain</span>
+            <label class="field"><input type="text" id="input-name-0" placeholder="Nama Pemain 1" required></label>
+            <label class="field"><input type="text" id="input-name-1" placeholder="Nama Pemain 2" required></label>
+            <label class="field"><input type="text" id="input-name-2" placeholder="Nama Pemain 3" required></label>
+            <label class="field" style="margin-bottom:0;"><input type="text" id="input-name-3" placeholder="Nama Pemain 4" required></label>
+          </div>
+          <div class="history-slide">
+            <span class="setup-label">🎯 Jumlah Ronde</span>
+            <div class="round-options" id="round-options">
+              <div class="round-chip" data-rounds="5">5 Ronde</div>
+              <div class="round-chip" data-rounds="10">10 Ronde</div>
+              <div class="round-chip" data-rounds="15">15 Ronde</div>
+            </div>
+            <label class="field" style="margin-bottom:0;">
+              <span>Atau masukkan jumlah custom</span>
+              <input type="number" id="input-custom-rounds" min="1" max="200" placeholder="Contoh: 8">
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="history-dots" id="setup-dots">
+        <span class="history-dot active" data-idx="0"></span>
+        <span class="history-dot" data-idx="1"></span>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">MULAI GAME</button>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="history-tabs" id="history-tabs">
+        <button type="button" class="history-tab active" data-tab="winner" onclick="switchHistoryTab('winner')">🏆 Riwayat Pemenang</button>
+        <button type="button" class="history-tab" data-tab="loser" onclick="switchHistoryTab('loser')">💀 Riwayat Kalah</button>
+      </div>
+      <div class="history-carousel" id="history-carousel">
+        <div class="history-track" id="history-track">
+          <div class="history-slide">
+            <div id="winner-history-list"></div>
+            <button class="winner-history-clear" id="btn-clear-winner-history" onclick="clearWinnerHistory()">Hapus Riwayat</button>
+          </div>
+          <div class="history-slide">
+            <div id="loser-history-list"></div>
+            <button class="loser-history-clear" id="btn-clear-loser-history" onclick="clearLoserHistory()">Hapus Riwayat</button>
+          </div>
+        </div>
+      </div>
+      <div class="history-dots" id="history-dots">
+        <span class="history-dot active" data-idx="0"></span>
+        <span class="history-dot" data-idx="1"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAYING SCREEN -->
+  <section id="screen-playing" class="screen">
+    <div class="round-pill">RONDE <b id="round-current">1</b> / <span id="round-total">10</span></div>
+
+    <div class="card">
+      <h2>Tentukan Status Pemain</h2>
+      <div id="player-status-list"></div>
+    </div>
+
+    <div id="validation-box"></div>
+
+    <button class="btn-primary" id="btn-next-round" onclick="handleRoundButton()" disabled>LANJUT RONDE</button>
+
+    <div class="card" style="margin-top:18px;">
+      <h2>🏆 Scoreboard</h2>
+      <table>
+        <thead><tr><th>Pemain</th><th class="num">Skor</th><th class="num">Menang</th><th class="num">Kalah</th><th class="num">Netral</th></tr></thead>
+        <tbody id="scoreboard-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat Ronde</h2>
+      <div id="history-list"></div>
+    </div>
+
+    <button class="btn-primary" style="margin-top:6px;" onclick="askNewGame()">MULAI GAME BARU</button>
+  </section>
+
+  <!-- FINISHED SCREEN -->
+  <section id="screen-finished" class="screen">
+    <div class="card" style="text-align:center;">
+      <h2 style="font-size:18px;margin-bottom:2px;">GAME SELESAI 🎉</h2>
+      <p style="font-size:11px;color:var(--ink);opacity:.65;margin:0;font-weight:600;">Total <span id="final-rounds">0</span> ronde dimainkan</p>
+    </div>
+
+    <div class="card">
+      <h2>Peringkat Akhir</h2>
+      <div id="final-ranking"></div>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat Ronde</h2>
+      <div id="final-history"></div>
+    </div>
+
+    <button class="btn-primary" onclick="askNewGame()">NEW GAME</button>
+  </section>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, onSnapshot }
+    from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDaQt2Hmmp9DcE0lZZRN4OLom_2izu0MZw",
+    authDomain: "gaple-score.firebaseapp.com",
+    projectId: "gaple-score",
+    storageBucket: "gaple-score.firebasestorage.app",
+    messagingSenderId: "145699585347",
+    appId: "1:145699585347:web:43967e76caf24fd7b983f6"
+  };
+
+  // Semua data disimpan di satu dokumen: gaple/{room}. Ganti room lewat URL: ?room=namakamu
+  const room = (new URLSearchParams(location.search).get('room') || 'default').replace(/[^\w-]/g, '').slice(0, 40) || 'default';
+
+  try{
+    const app = initializeApp(firebaseConfig);
+    const db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+    const ref = doc(db, 'gaple', room);
+
+    // dipanggil oleh script utama untuk menulis satu field (state | winners | losers)
+    window.gapleCloud = {
+      set(field, value){
+        setDoc(ref, { [field]: JSON.stringify(value), updatedAt: Date.now() }, { merge: true })
+          .catch(e => console.error('Gagal menyimpan ke Firebase:', e));
+      }
+    };
+
+    let first = true;
+    onSnapshot(ref, (snap) => {
+      const data = snap.exists() ? snap.data() : null;
+      if(first){
+        first = false;
+        // MIGRASI: dokumen masih kosong -> pindahkan data lama dari localStorage
+        if(!data || (!data.state && !data.winners && !data.losers)){
+          const legacy = window.gapleReadLegacy();
+          const payload = {};
+          if(legacy.state)   payload.state   = JSON.stringify(legacy.state);
+          if(legacy.winners.length) payload.winners = JSON.stringify(legacy.winners);
+          if(legacy.losers.length)  payload.losers  = JSON.stringify(legacy.losers);
+          if(Object.keys(payload).length){
+            payload.updatedAt = Date.now();
+            setDoc(ref, payload, { merge: true }).catch(e => console.error('Migrasi gagal:', e));
+            window.gapleApplyCloud({ state: payload.state, winners: payload.winners, losers: payload.losers }, true);
+            return;
+          }
+        }
+        window.gapleApplyCloud(data || {}, true);
+      } else if(!snap.metadata.hasPendingWrites){
+        window.gapleApplyCloud(data || {}, false); // perubahan dari perangkat lain
+      }
+    }, (err) => {
+      console.error('Firebase error:', err);
+      window.gapleCloudFailed && window.gapleCloudFailed();
+    });
+  }catch(e){
+    console.error('Firebase gagal diinisialisasi:', e);
+    window.gapleCloudFailed && window.gapleCloudFailed();
+  }
+</script>
+<script>
+/* ======================= STATE ======================= */
+const STORAGE_KEY = 'gapleScoreState_v1';
+const WINNER_HISTORY_KEY = 'gapleWinnerHistory_v1';
+const LOSER_HISTORY_KEY = 'gapleLoserHistory_v1';
+const SCORE_RULES = { win: 1, lose: -1, neutral: 0 };
+
+let gameState = null;
+
+/* ======================= CLOUD CACHE (Firebase) ======================= */
+// Data dibaca dari cache memori (sinkron), ditulis ke Firestore di background.
+const cache = { state: null, winners: [], losers: [] };
+let cloudReadyResolve;
+const cloudReady = new Promise(r => { cloudReadyResolve = r; });
+
+function parseJSON(v, fallback){
+  try{
+    const out = (typeof v === 'string') ? JSON.parse(v) : v;
+    return out == null ? fallback : out;
+  }catch(e){ return fallback; }
+}
+
+function cloudWrite(field, value){
+  if(window.gapleCloud) window.gapleCloud.set(field, value);
+}
+
+// baca data lama di localStorage (untuk migrasi satu kali & fallback offline)
+window.gapleReadLegacy = function(){
+  const read = (k, fb) => { try{ return parseJSON(localStorage.getItem(k), fb); }catch(e){ return fb; } };
+  const w = read(WINNER_HISTORY_KEY, []), l = read(LOSER_HISTORY_KEY, []);
+  return { state: read(STORAGE_KEY, null), winners: Array.isArray(w) ? w : [], losers: Array.isArray(l) ? l : [] };
+};
+
+window.gapleApplyCloud = function(data, isFirst){
+  const w = parseJSON(data.winners, []), l = parseJSON(data.losers, []);
+  cache.winners = Array.isArray(w) ? w : [];
+  cache.losers  = Array.isArray(l) ? l : [];
+  if(isFirst){
+    cache.state = parseJSON(data.state, null);
+    cloudReadyResolve();
+  } else {
+    // update dari perangkat lain: hanya riwayat yang di-refresh, game yang sedang jalan tidak diganggu
+    renderWinnerHistoryList();
+    renderLoserHistoryList();
+  }
+};
+
+window.gapleCloudFailed = function(){
+  if(cache.__fallback) return;
+  cache.__fallback = true;
+  const legacy = window.gapleReadLegacy();
+  cache.state = legacy.state; cache.winners = legacy.winners; cache.losers = legacy.losers;
+  cloudReadyResolve();
+};
+
+let selectedRounds = 10;
+let pendingStatuses = {}; // { playerIndex: 'win'|'lose'|'neutral' }
+
+function defaultState(){
+  return {
+    players: [
+      { name:'Pemain 1', score:0, wins:0, losses:0, neutral:0 },
+      { name:'Pemain 2', score:0, wins:0, losses:0, neutral:0 },
+      { name:'Pemain 3', score:0, wins:0, losses:0, neutral:0 },
+      { name:'Pemain 4', score:0, wins:0, losses:0, neutral:0 }
+    ],
+    totalRounds: 10,
+    currentRound: 1,
+    history: [],
+    status: 'setup' // setup | playing | finished
+  };
+}
+
+/* ======================= PERSISTENCE ======================= */
+function saveGame(){
+  try{
+    cache.state = gameState;
+    cloudWrite('state', gameState);
+  }catch(e){
+    console.error('Gagal menyimpan data game:', e);
+  }
+}
+
+function loadGame(){
+  try{
+    const parsed = cache.state;
+    if(!parsed || !Array.isArray(parsed.players) || parsed.players.length !== 4) return null;
+    return parsed;
+  }catch(e){
+    console.error('Gagal memuat data game:', e);
+    return null;
+  }
+}
+
+/* ======================= WINNER HISTORY ======================= */
+function loadWinnerHistory(){
+  try{
+    return Array.isArray(cache.winners) ? cache.winners : [];
+  }catch(e){
+    console.error('Gagal memuat riwayat pemenang:', e);
+    return [];
+  }
+}
+
+function saveWinnerHistoryEntry(state){
+  try{
+    const maxScore = Math.max(...state.players.map(p => p.score));
+    const winners = state.players.filter(p => p.score === maxScore);
+    const entry = {
+      date: new Date().toISOString(),
+      rounds: state.totalRounds,
+      winners: winners.map(w => ({ name: w.name, score: w.score })),
+      players: state.players.map(p => ({ name: p.name, score: p.score }))
+    };
+    const list = loadWinnerHistory();
+    list.unshift(entry); // terbaru di paling atas
+    // batasi maksimal 30 riwayat supaya dokumen Firestore tidak membengkak
+    const trimmed = list.slice(0, 30);
+    cache.winners = trimmed;
+    cloudWrite('winners', trimmed);
+  }catch(e){
+    console.error('Gagal menyimpan riwayat pemenang:', e);
+  }
+}
+
+function formatWinnerHistoryDate(iso){
+  try{
+    const d = new Date(iso);
+    const tgl = d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    const jam = d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    return tgl + ', ' + jam;
+  }catch(e){
+    return '';
+  }
+}
+
+function renderWinnerHistoryList(){
+  const container = document.getElementById('winner-history-list');
+  const clearBtn = document.getElementById('btn-clear-winner-history');
+  if(!container) return;
+  const list = loadWinnerHistory();
+  container.innerHTML = '';
+
+  if(list.length === 0){
+    container.innerHTML = '<p class="winner-history-empty">Belum ada riwayat pemenang. Selesaikan sebuah game untuk melihatnya di sini.</p>';
+    if(clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+  if(clearBtn) clearBtn.style.display = 'block';
+
+  list.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'winner-history-item';
+    const winnerNames = entry.winners.map(w => escapeHtml(w.name)).join(' & ');
+    const winnerScore = entry.winners.length ? formatScore(entry.winners[0].score) : '';
+    const medal = entry.winners.length > 1 ? '🤝' : '🏆';
+    item.innerHTML = `
+      <div class="winner-history-medal">${medal}</div>
+      <div class="winner-history-info">
+        <div class="winner-history-name">${winnerNames}</div>
+        <div class="winner-history-meta">${formatWinnerHistoryDate(entry.date)} &nbsp;·&nbsp; ${entry.rounds} ronde</div>
+      </div>
+      <div class="winner-history-score">${winnerScore}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function clearWinnerHistory(){
+  confirmAction('Hapus semua riwayat pemenang? Tindakan ini tidak dapat dibatalkan.', () => {
+    cache.winners = [];
+    cloudWrite('winners', []);
+    renderWinnerHistoryList();
+  });
+}
+
+/* ======================= LOSER HISTORY ======================= */
+// Disimpan terpisah dari WINNER_HISTORY_KEY supaya data pemenang & kalah tidak tercampur.
+function loadLoserHistory(){
+  try{
+    return Array.isArray(cache.losers) ? cache.losers : [];
+  }catch(e){
+    console.error('Gagal memuat riwayat kalah:', e);
+    return [];
+  }
+}
+
+function saveLoserHistoryEntry(state){
+  try{
+    const minScore = Math.min(...state.players.map(p => p.score));
+    const losers = state.players.filter(p => p.score === minScore);
+    const entry = {
+      date: new Date().toISOString(),
+      rounds: state.totalRounds,
+      losers: losers.map(l => ({ name: l.name, score: l.score })),
+      players: state.players.map(p => ({ name: p.name, score: p.score }))
+    };
+    const list = loadLoserHistory();
+    list.unshift(entry); // terbaru di paling atas
+    // batasi maksimal 30 riwayat supaya dokumen Firestore tidak membengkak
+    const trimmed = list.slice(0, 30);
+    cache.losers = trimmed;
+    cloudWrite('losers', trimmed);
+  }catch(e){
+    console.error('Gagal menyimpan riwayat kalah:', e);
+  }
+}
+
+function renderLoserHistoryList(){
+  const container = document.getElementById('loser-history-list');
+  const clearBtn = document.getElementById('btn-clear-loser-history');
+  if(!container) return;
+  const list = loadLoserHistory();
+  container.innerHTML = '';
+
+  if(list.length === 0){
+    container.innerHTML = '<p class="loser-history-empty">Belum ada riwayat kalah. Selesaikan sebuah game untuk melihatnya di sini.</p>';
+    if(clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+  if(clearBtn) clearBtn.style.display = 'block';
+
+  list.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'loser-history-item';
+    const loserNames = entry.losers.map(l => escapeHtml(l.name)).join(' & ');
+    const loserScore = entry.losers.length ? formatScore(entry.losers[0].score) : '';
+    const medal = entry.losers.length > 1 ? '😵' : '💀';
+    item.innerHTML = `
+      <div class="loser-history-medal">${medal}</div>
+      <div class="loser-history-info">
+        <div class="loser-history-name">${loserNames}</div>
+        <div class="loser-history-meta">${formatWinnerHistoryDate(entry.date)} &nbsp;·&nbsp; ${entry.rounds} ronde</div>
+      </div>
+      <div class="loser-history-score">${loserScore}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function clearLoserHistory(){
+  confirmAction('Hapus semua riwayat kalah? Tindakan ini tidak dapat dibatalkan.', () => {
+    cache.losers = [];
+    cloudWrite('losers', []);
+    renderLoserHistoryList();
+  });
+}
+
+/* ======================= CAROUSEL (swipe generik: Setup & Riwayat) ======================= */
+const carousels = {};
+
+function createCarousel(key, ids){
+  const carousel = document.getElementById(ids.carousel);
+  const track = document.getElementById(ids.track);
+  if(!carousel || !track) return;
+  // area sentuh/swipe: default carousel, bisa diperluas (mis. seluruh kartu) lewat ids.area
+  const area = (ids.area && document.getElementById(ids.area)) || carousel;
+  const total = track.children.length;
+  const c = { index:0, dragging:false, startX:0, deltaX:0, moved:false };
+  carousels[key] = c;
+
+  c.apply = () => {
+    track.style.transform = `translateX(${-c.index * (100 / total)}%)`;
+    document.querySelectorAll(`#${ids.tabs} .history-tab, #${ids.tabs} .setup-label`).forEach((btn, i) => btn.classList.toggle('active', i === c.index));
+    document.querySelectorAll(`#${ids.dots} .history-dot`).forEach((dot, i) => dot.classList.toggle('active', i === c.index));
+    carousel.scrollLeft = 0;
+  };
+  c.go = (i) => { c.index = Math.max(0, Math.min(total - 1, i)); c.apply(); };
+
+  const isField = (t) => t && t.closest && t.closest('input, textarea, select');
+
+  const onStart = (x) => { c.dragging = true; c.moved = false; c.startX = x; c.deltaX = 0; track.classList.add('dragging'); };
+  const onMove = (x) => {
+    if(!c.dragging) return;
+    c.deltaX = x - c.startX;
+    if(Math.abs(c.deltaX) > 5) c.moved = true;
+    const width = carousel.offsetWidth || 1;
+    track.style.transform = `translateX(${(-c.index * (100 / total)) + (c.deltaX / width) * (100 / total)}%)`;
+  };
+  const onEnd = () => {
+    if(!c.dragging) return;
+    c.dragging = false;
+    track.classList.remove('dragging');
+    const threshold = (carousel.offsetWidth || 1) * 0.15;
+    if(c.deltaX <= -threshold) c.index = Math.min(total - 1, c.index + 1);
+    else if(c.deltaX >= threshold) c.index = Math.max(0, c.index - 1);
+    c.deltaX = 0;
+    c.apply();
+  };
+
+  area.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX), { passive:true });
+  area.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive:true });
+  area.addEventListener('touchend', onEnd);
+  area.addEventListener('touchcancel', onEnd);
+
+  area.addEventListener('mousedown', (e) => {
+    if(isField(e.target)) return;          // biarkan input tetap bisa difokus / diseleksi
+    onStart(e.clientX); e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e) => onMove(e.clientX));
+  window.addEventListener('mouseup', onEnd);
+  // jangan anggap drag sebagai klik (mis. tidak sengaja memilih chip)
+  area.addEventListener('click', (e) => { if(c.moved){ e.stopPropagation(); e.preventDefault(); c.moved = false; } }, true);
+
+  // fokus lewat Tab/keyboard ke slide lain -> geser otomatis ke slide itu
+  carousel.addEventListener('focusin', (e) => {
+    const slide = e.target.closest('.history-slide');
+    const i = slide ? Array.prototype.indexOf.call(track.children, slide) : -1;
+    if(i >= 0 && i !== c.index) c.go(i); else carousel.scrollLeft = 0;
+  });
+
+  window.addEventListener('resize', c.apply);
+}
+
+function switchHistoryTab(tab){ carousels.history && carousels.history.go(tab === 'loser' ? 1 : 0); }
+function switchSetupTab(i){ carousels.setup && carousels.setup.go(i); }
+
+function initHistoryCarousel(){
+  createCarousel('history', { carousel:'history-carousel', track:'history-track', tabs:'history-tabs', dots:'history-dots' });
+  createCarousel('setup', { area:'setup-card', carousel:'setup-carousel', track:'setup-track', tabs:'setup-tabs', dots:'setup-dots' });
+}
+
+/* ======================= SCREEN CONTROL ======================= */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
+  document.getElementById('screen-' + name).classList.add('visible');
+}
+
+/* ======================= SHARED HELPERS ======================= */
+// Jalankan `action` hanya jika user menyetujui dialog konfirmasi.
+function confirmAction(message, action){
+  if(confirm(message)) action();
+}
+
+// Set ulang pilihan chip jumlah ronde ke default (10 ronde).
+function activateDefaultRoundChip(){
+  document.querySelectorAll('.round-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.round-chip[data-rounds="10"]').classList.add('active');
+}
+
+/* ======================= INIT ======================= */
+window.addEventListener('DOMContentLoaded', () => {
+  // tunggu data Firebase; kalau >6 detik belum datang, pakai data localStorage lama
+  setTimeout(() => window.gapleCloudFailed(), 6000);
+  cloudReady.then(init);
+});
+
+/* ======================= THEME TOGGLE ======================= */
+const THEME_ORDER = ['neo', 'material', 'cyberpunk'];
+function toggleTheme(){
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'neo';
+  const nextIndex = (THEME_ORDER.indexOf(current) + 1) % THEME_ORDER.length;
+  const next = THEME_ORDER[nextIndex];
+  if(next === 'neo'){
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', next);
+  }
+  try{ localStorage.setItem('gapleTheme', next); }catch(e){}
+  updateThemeToggleButton();
+}
+
+function updateThemeToggleButton(){
+  const btn = document.getElementById('theme-toggle');
+  if(!btn) return;
+  const current = document.documentElement.getAttribute('data-theme') || 'neo';
+  const ICONS = { neo:'🎨', material:'🧱', cyberpunk:'⚡' };
+  const NEXT_LABEL = { neo:'Material Design', material:'Cyberpunk Futuristic', cyberpunk:'Neobrutalism' };
+  btn.textContent = ICONS[current];
+  btn.title = 'Ganti ke tampilan ' + NEXT_LABEL[current];
+}
+
+function init(){
+  updateThemeToggleButton();
+  document.querySelectorAll('.round-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.round-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedRounds = parseInt(chip.dataset.rounds, 10);
+      document.getElementById('input-custom-rounds').value = '';
+    });
+  });
+  document.getElementById('input-custom-rounds').addEventListener('input', (e) => {
+    if(e.target.value){
+      document.querySelectorAll('.round-chip').forEach(c => c.classList.remove('active'));
+      selectedRounds = null;
+    }
+  });
+
+  const saved = loadGame();
+  if(saved && saved.status === 'playing'){
+    gameState = saved;
+    showScreen('resume');
+  } else if(saved && saved.status === 'finished'){
+    gameState = saved;
+    renderFinalResult();
+    showScreen('finished');
+  } else {
+    gameState = defaultState();
+    activateDefaultRoundChip();
+    renderWinnerHistoryList();
+    renderLoserHistoryList();
+    showScreen('setup');
+  }
+  initHistoryCarousel();
+}
+
+function resumeGame(){
+  pendingStatuses = {};
+  renderPlayerStatusList();
+  renderScoreboard();
+  renderRoundHistory();
+  updateRoundHeader();
+  validateRound();
+  showScreen('playing');
+}
+
+function confirmNewFromResume(){
+  confirmAction('Mulai game baru? Data game saat ini akan dihapus.', () => {
+    cache.state = null;
+    cloudWrite('state', null);
+    gameState = defaultState();
+    activateDefaultRoundChip();
+    renderWinnerHistoryList();
+    renderLoserHistoryList();
+    showScreen('setup');
+  });
+}
+
+/* ======================= START GAME ======================= */
+function startGame(){
+  const names = [];
+  for(let i=0;i<4;i++){
+    const val = document.getElementById('input-name-' + i).value.trim();
+    if(!val){
+      switchSetupTab(0);
+      alert('Nama Pemain ' + (i+1) + ' harus diisi.');
+      document.getElementById('input-name-' + i).focus();
+      return;
+    }
+    names.push(val);
+  }
+
+  const customVal = document.getElementById('input-custom-rounds').value;
+  let totalRounds = selectedRounds;
+  if(customVal){
+    const n = parseInt(customVal, 10);
+    if(!n || n < 1){
+      switchSetupTab(1);
+      alert('Jumlah ronde custom harus lebih dari 0.');
+      return;
+    }
+    totalRounds = n;
+  }
+  if(!totalRounds){
+    switchSetupTab(1);
+    alert('Silakan pilih jumlah ronde terlebih dahulu.');
+    return;
+  }
+
+  gameState = defaultState();
+  gameState.players.forEach((p, i) => p.name = names[i]);
+  gameState.totalRounds = totalRounds;
+  gameState.currentRound = 1;
+  gameState.status = 'playing';
+
+  pendingStatuses = {};
+  saveGame();
+
+  renderPlayerStatusList();
+  renderScoreboard();
+  renderRoundHistory();
+  updateRoundHeader();
+  validateRound();
+  showScreen('playing');
+}
+
+/* ======================= ROUND PLAY ======================= */
+function updateRoundHeader(){
+  document.getElementById('round-current').textContent = gameState.currentRound;
+  document.getElementById('round-total').textContent = gameState.totalRounds;
+  const btn = document.getElementById('btn-next-round');
+  btn.textContent = (gameState.currentRound >= gameState.totalRounds) ? 'SELESAI GAME' : 'LANJUT RONDE';
+}
+
+function renderPlayerStatusList(){
+  const container = document.getElementById('player-status-list');
+  container.innerHTML = '';
+  gameState.players.forEach((player, idx) => {
+    const status = pendingStatuses[idx] || null;
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="player-name">${escapeHtml(player.name)}</div>
+      <div class="status-btns">
+        <button type="button" class="status-btn win ${status==='win'?'active':''}" onclick="selectPlayerStatus(${idx}, 'win')" title="Menang">🏆</button>
+        <button type="button" class="status-btn lose ${status==='lose'?'active':''}" onclick="selectPlayerStatus(${idx}, 'lose')" title="Kalah"><span class="status-icon-x">✕</span></button>
+        <button type="button" class="status-btn neutral ${status==='neutral'?'active':''}" onclick="selectPlayerStatus(${idx}, 'neutral')" title="Netral">⚪</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function selectPlayerStatus(playerIndex, status){
+  if(pendingStatuses[playerIndex] === status){
+    delete pendingStatuses[playerIndex];
+  } else {
+    pendingStatuses[playerIndex] = status;
+  }
+  renderPlayerStatusList();
+  validateRound();
+}
+
+function validateRound(){
+  const values = Object.values(pendingStatuses);
+  const wins = values.filter(v => v === 'win').length;
+  const losses = values.filter(v => v === 'lose').length;
+  const neutrals = values.filter(v => v === 'neutral').length;
+  const totalSet = Object.keys(pendingStatuses).length;
+
+  const box = document.getElementById('validation-box');
+  const btn = document.getElementById('btn-next-round');
+  let valid = (wins === 1 && losses === 1 && neutrals === 2 && totalSet === 4);
+
+  if(valid){
+    box.innerHTML = '<div class="validation-msg ok">Kombinasi status valid ✓</div>';
+    btn.disabled = false;
+  } else {
+    let msg = 'Pilih status: tepat 1 Menang, 1 Kalah, 2 Netral.';
+    if(totalSet < 4) msg = `Lengkapi status semua pemain (${totalSet}/4 terisi).`;
+    else if(wins !== 1) msg = `Harus tepat 1 pemenang (saat ini ${wins}).`;
+    else if(losses !== 1) msg = `Harus tepat 1 kalah (saat ini ${losses}).`;
+    else if(neutrals !== 2) msg = `Harus tepat 2 netral (saat ini ${neutrals}).`;
+    box.innerHTML = `<div class="validation-msg">${msg}</div>`;
+    btn.disabled = true;
+  }
+  return valid;
+}
+
+function handleRoundButton(){
+  if(!validateRound()) return;
+  finishRound();
+  if(gameState.currentRound >= gameState.totalRounds){
+    finishGame();
+  } else {
+    nextRound();
+  }
+}
+
+function finishRound(){
+  // apply scores + record history entry
+  const entry = { round: gameState.currentRound, results: [] };
+  gameState.players.forEach((player, idx) => {
+    const status = pendingStatuses[idx];
+    player.score += SCORE_RULES[status];
+    if(status === 'win') player.wins++;
+    else if(status === 'lose') player.losses++;
+    else player.neutral++;
+    entry.results.push({ name: player.name, status });
+  });
+  gameState.history.push(entry);
+  saveGame();
+  renderScoreboard();
+  renderRoundHistory();
+}
+
+function nextRound(){
+  gameState.currentRound++;
+  pendingStatuses = {};
+  saveGame();
+  renderPlayerStatusList();
+  updateRoundHeader();
+  validateRound();
+}
+
+function finishGame(){
+  gameState.status = 'finished';
+  saveGame();
+  saveWinnerHistoryEntry(gameState);
+  saveLoserHistoryEntry(gameState);
+  renderFinalResult();
+  showScreen('finished');
+}
+
+/* ======================= RENDER: SCOREBOARD ======================= */
+function scoreClass(score){
+  if(score > 0) return 'pos';
+  if(score < 0) return 'neg';
+  return 'zero';
+}
+function formatScore(score){
+  if(score > 0) return '+' + score;
+  return String(score);
+}
+
+function renderScoreboard(){
+  const body = document.getElementById('scoreboard-body');
+  body.innerHTML = '';
+  gameState.players.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(p.name)}</td>
+      <td class="num score-cell"><span class="score-badge ${scoreClass(p.score)}">${formatScore(p.score)}</span></td>
+      <td class="num">${p.wins}</td>
+      <td class="num">${p.losses}</td>
+      <td class="num">${p.neutral}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ======================= RENDER: HISTORY ======================= */
+function statusLabel(status){
+  if(status === 'win') return { text:'Menang', cls:'win' };
+  if(status === 'lose') return { text:'Kalah', cls:'lose' };
+  return { text:'Netral', cls:'neutral' };
+}
+
+function renderRoundHistory(){
+  renderHistoryInto('history-list');
+}
+function renderHistoryIntoFinal(){
+  renderHistoryInto('final-history');
+}
+
+function renderHistoryInto(containerId){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if(gameState.history.length === 0){
+    container.innerHTML = '<p style="font-size:11px;color:var(--ink);opacity:.65;margin:0;font-weight:600;">Belum ada ronde yang dimainkan.</p>';
+    return;
+  }
+  // newest first for readability
+  [...gameState.history].reverse().forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    const rows = entry.results.map(r => {
+      const lbl = statusLabel(r.status);
+      return `<div class="history-entry">${escapeHtml(r.name)} <span class="history-tag ${lbl.cls}">${lbl.text}</span></div>`;
+    }).join('');
+    item.innerHTML = `<div class="history-title">Ronde ${entry.round}</div><div class="history-grid">${rows}</div>`;
+    container.appendChild(item);
+  });
+}
+
+/* ======================= RENDER: FINAL RESULT ======================= */
+function renderFinalResult(){
+  document.getElementById('final-rounds').textContent = gameState.history.length;
+
+  const ranking = document.getElementById('final-ranking');
+  ranking.innerHTML = '';
+
+  const sorted = [...gameState.players].sort((a,b) => b.score - a.score);
+
+  // compute rank positions accounting for ties
+  let currentRank = 1;
+  const withRank = sorted.map((p, idx) => {
+    if(idx > 0 && p.score === sorted[idx-1].score){
+      // same rank as previous
+    } else {
+      currentRank = idx + 1;
+    }
+    return { ...p, rank: currentRank };
+  });
+
+  const medals = { 1:'🥇', 2:'🥈', 3:'🥉' };
+
+  withRank.forEach((p, idx) => {
+    const tiedCount = withRank.filter(x => x.rank === p.rank).length;
+    const card = document.createElement('div');
+    card.className = 'rank-card' + (p.rank === 1 ? ' top' : '');
+    const medal = medals[p.rank] || ('#' + p.rank);
+    card.innerHTML = `
+      <div class="rank-medal">${medal}</div>
+      <div class="rank-info">
+        <div class="rank-name">${escapeHtml(p.name)}</div>
+        <div class="rank-stats">Menang: ${p.wins} &nbsp;·&nbsp; Kalah: ${p.losses} &nbsp;·&nbsp; Netral: ${p.neutral}</div>
+        ${tiedCount > 1 ? '<div class="tie-note">Seri dengan ' + (tiedCount-1) + ' pemain lain</div>' : ''}
+      </div>
+      <div class="rank-score ${scoreClass(p.score)}">${formatScore(p.score)}</div>
+    `;
+    ranking.appendChild(card);
+  });
+
+  renderHistoryIntoFinal();
+}
+
+/* ======================= NEW GAME / RESET ======================= */
+function askNewGame(){
+  confirmAction('Mulai game baru? Data game saat ini akan dihapus.', newGame);
+}
+
+function newGame(){
+  cache.state = null;
+  cloudWrite('state', null);
+  gameState = defaultState();
+  pendingStatuses = {};
+  for(let i = 0; i < 4; i++){
+    document.getElementById('input-name-' + i).value = '';
+  }
+  document.getElementById('input-custom-rounds').value = '';
+  activateDefaultRoundChip();
+  selectedRounds = 10;
+  renderWinnerHistoryList();
+  renderLoserHistoryList();
+  showScreen('setup');
+}
+
+/* ======================= UTIL ======================= */
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
